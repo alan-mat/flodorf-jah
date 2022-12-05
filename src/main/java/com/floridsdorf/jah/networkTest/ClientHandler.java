@@ -36,18 +36,77 @@ public class ClientHandler implements Runnable {
                 }
 
                 if (input.equalsIgnoreCase("HELP")) {
-                    // Handle the HELP command
+                    out.println("Commands: HELP, PLAYERS, START, ANSWER, SCORES, QUIT");
+                } else if (input.equalsIgnoreCase("PLAYERS")) {
+                    out.println("Players: " + players.keySet());
+                } else if (input.equalsIgnoreCase("START")) {
+                    if (gameStarted) {
+                        out.println("Game already started!");
+                    } else {
+                        gameStarted = true;
+                        out.println("Game started!");
+                    }
+                } else if (input.toUpperCase().startsWith("ANSWER")) {
+                    if (!gameStarted) {
+                        out.println("Game not started!");
+                    } else {
+                        String answer = input.substring(6).trim();
+                        if (answer.isEmpty()) {
+                            out.println("Please provide an answer!");
+                        } else {
+                            answers.add(answer);
+                            out.println("Answer submitted!");
+                        }
+                    }
+                } else if (input.equalsIgnoreCase("SCORES")) {
+                    if (!gameStarted) {
+                        out.println("Game not started!");
+                    } else {
+                        out.println("Scores: " + players);
+                    }
+                } else if (input.equalsIgnoreCase("QUIT")) {
+                    break;
+                } else {
+                    out.println("Unknown command!");
                 } else if (input.equalsIgnoreCase("JOIN")) {
-                    // Handle the JOIN command
+                    if (gameStarted) {
+                        out.println("Game already started!");
+                    } else {
+                        String name = input.substring(4).trim();
+                        if (name.isEmpty()) {
+                            out.println("Please provide a name!");
+                        } else {
+                            players.put(name, 0);
+                            out.println("Joined the game!");
+                        }
+                    }
                     handleJoin(in, out);
                 } else if (input.equalsIgnoreCase("READY")) {
-                    // Handle the READY command
+                    if (!gameStarted) {
+                        out.println("Game not started!");
+                    } else {
+                        out.println("Ready!");
+                    }
                     handleReady(in, out);
                 } else if (input.equalsIgnoreCase("ANSWER")) {
-                    // Handle the ANSWER command
+                    if (!gameStarted) {
+                        out.println("Game not started!");
+                    } else {
+                        String answer = input.substring(6).trim();
+                        if (answer.isEmpty()) {
+                            out.println("Please provide an answer!");
+                        } else {
+                            answers.add(answer);
+                            out.println("Answer submitted!");
+                        }
+                    }
                     handleAnswer(in, out);
                 } else if (input.equalsIgnoreCase("LEADERBOARD")) {
-                    // Handle the LEADERBOARD command
+                    if (!gameStarted) {
+                        out.println("Game not started!");
+                    } else {
+                        out.println("Leaderboard: " + players);
+                    }
                     handleLeaderboard(in, out);
                 } else {
                     out.println("Unknown command. Type 'HELP' for a list of commands.");
@@ -223,5 +282,6 @@ public class ClientHandler implements Runnable {
         }
     }
     private List<PrintWriter> outputs = new ArrayList<>();
+
 
 }
