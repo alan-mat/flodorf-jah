@@ -87,13 +87,35 @@ public class GameHandler {
         currentRoundAnswers.put(userName, answer);
     }
 
-    public void addPoint(String name){
-        for(Player p : players) {
-            if (p.getUserName().equals(name)) {
-                p.addPoints(1);
-                return;
+    public Player addPoint(Map<String, Integer> votes){
+        //TODO: refactor
+        //TODO: support multiple winning players
+        votes = sortMapByValue(votes);
+        String prompt = "";
+        for (Map.Entry<String, Integer> entry : votes.entrySet()) {
+            prompt = entry.getKey();
+        }
+        for(Map.Entry<String, String> entry : currentRoundAnswers.entrySet()){
+            if(entry.getValue().equals(prompt)){
+                for(Player p : players){
+                    if(p.getUserName().equals(entry.getKey())) {
+                        p.addPoints(1);
+                        return p;
+                    }
+                }
             }
         }
+        return null;    //should never happen
+    }
+
+    private static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
+        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        Map<K, V> result = new LinkedHashMap<>();
+        for (Map.Entry<K, V> entry : list) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 
     public List<String> getPrompts(){ return prompts; }

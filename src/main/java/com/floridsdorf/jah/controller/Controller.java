@@ -6,6 +6,7 @@ import com.floridsdorf.jah.view.PrototypeView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Prototype Controller
@@ -29,7 +30,16 @@ public class Controller {
         List<Player> winningPlayers = gameHandler.endRound();
         if(winningPlayers == null)
             return false;
-        //TODO: output some end of game messages showing winner(s) etc.
+        if(winningPlayers.size() == 1)
+            view.printText(String.format("%s wins the game! Congratulations!", winningPlayers.get(0).getUserName()));
+        else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("It's a tie!").append(System.lineSeparator());
+            for (Player p : winningPlayers)
+                sb.append(p.getUserName());
+            sb.append(System.lineSeparator());
+            view.printText(sb.toString());
+        }
         return true;
     }
 
@@ -38,7 +48,15 @@ public class Controller {
     }
 
     public void addAnswer(String name, String answer){ gameHandler.addAnswer(name, answer); }
-    public void addPoint(String name){ gameHandler.addPoint(name); }
+    public String addPoint(Map<String, Integer> votes){
+        Player p = gameHandler.addPoint(votes);
+        if(p == null){
+            System.err.println("PLAYER COULD NOT BE FOUND! THIS SHOULD NOT HAPPEN");
+            System.exit(1); //panic exit program
+        }
+        return String.format("%s gets the point%n%s now has %d points.%n",
+                p.getUserName(), p.getUserName(), p.getPoints());
+    }
 
     public List<String> getPlayers(){
         List<String> players = new ArrayList<>();
