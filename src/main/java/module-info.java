@@ -5,5 +5,6 @@ module com.floridsdorf.flodorfjah {
 
 
     opens com.floridsdorf.jah to javafx.fxml;
+    opens com.floridsdorf.jah.controller.viewControllers to javafx.fxml;
     exports com.floridsdorf.jah;
 }
