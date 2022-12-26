@@ -5,7 +5,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-
 <AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.floridsdorf.jah.controller.viewControllers.HomeController">
 
     <Label fx:id="welcomeText" alignment="CENTER" layoutX="211.0" layoutY="112.0" prefHeight="26.0" prefWidth="179.0" style="-fx-text-fill: white;" text="Jokes Against ">
