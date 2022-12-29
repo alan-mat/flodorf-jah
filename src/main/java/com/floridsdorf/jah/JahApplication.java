@@ -19,7 +19,7 @@ public class JahApplication extends Application {
         ViewSwitcher.setScene(scene);
         ViewSwitcher.switchTo(View.DEBUG);
 
-        stage.setTitle("Hello!");
+        stage.setTitle("Jokes Against Humanity");
         stage.setScene(scene);
         stage.show();
     }

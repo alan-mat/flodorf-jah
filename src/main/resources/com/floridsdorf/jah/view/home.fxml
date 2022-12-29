@@ -4,24 +4,43 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.floridsdorf.jah.controller.viewControllers.HomeController">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: black;"
+            xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.floridsdorf.jah.controller.viewControllers.HomeController">
+    <HBox alignment="CENTER" layoutY="105.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <children>
+            <VBox alignment="CENTER" spacing="15.0">
+                <children>
 
-    <Label fx:id="welcomeText" alignment="CENTER" layoutX="211.0" layoutY="112.0" prefHeight="26.0" prefWidth="179.0" style="-fx-text-fill: white;" text="Jokes Against ">
-      <font>
-         <Font size="21.0" />
-      </font></Label>
-    <Button layoutX="259.0" layoutY="200.0" onAction="#onStartGameButtonClick" style="-fx-font-weight: bold;" text="Start Game!">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font></Button>
-
-    <Button layoutX="549.0" layoutY="360.0" onAction="#onExitButtonClick" text="Exit" />
-   <Label alignment="CENTER" contentDisplay="CENTER" layoutX="234.0" layoutY="139.0" prefHeight="56.0" prefWidth="133.0" style="-fx-text-fill: white;" text="Humanity" textAlignment="CENTER">
-      <font>
-         <Font name="System Bold" size="28.0" />
-      </font>
-   </Label>
-   <TextField layoutX="220.0" layoutY="283.0" />
-   <Label alignment="CENTER" layoutX="204.0" layoutY="251.0" prefHeight="17.0" prefWidth="191.0" style="-fx-text-fill: white;" text="enter your breathtaking name:" />
+                    <Label fx:id="welcomeText" alignment="CENTER" style="-fx-text-fill: white;" text="Jokes Against "
+                           textAlignment="CENTER">
+                        <font>
+                            <Font size="21.0"/>
+                        </font>
+                    </Label>
+                    <Label alignment="CENTER" contentDisplay="CENTER" style="-fx-text-fill: white;" text="Humanity"
+                           textAlignment="CENTER">
+                        <font>
+                            <Font name="System Bold" size="28.0"/>
+                        </font>
+                    </Label>
+                    <Button fx:id="startButton" onAction="#onStartGameButtonClick" style="-fx-font-weight: bold;"
+                            text="Start Game!">
+                        <font>
+                            <Font name="System Bold" size="13.0"/>
+                        </font>
+                    </Button>
+                    <Label alignment="CENTER" style="-fx-text-fill: white;" text="enter your breathtaking name:"/>
+                    <TextField fx:id="nameInput" alignment="CENTER" maxWidth="-Infinity"/>
+                </children>
+            </VBox>
+        </children>
+    </HBox>
+    <Button fx:id="exitButton" onAction="#onExitButtonClick" mnemonicParsing="false" text="Exit"
+            AnchorPane.bottomAnchor="0.0"
+            AnchorPane.rightAnchor="0.0"/>
 </AnchorPane>

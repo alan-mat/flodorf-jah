@@ -10,11 +10,6 @@ public class DebugController {
     @FXML
     private Label welcomeText;
 
-    @FXML
-    protected void onHelloButtonClick() {
-        welcomeText.setText("Welcome to JavaFX Application!");
-    }
-
     public void onHomeButtonClick() {
         ViewSwitcher.switchTo(View.HOME);
     }
