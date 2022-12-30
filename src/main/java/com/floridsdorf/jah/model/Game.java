@@ -1,4 +1,4 @@
-package com.floridsdorf.jah.networkTest;
+package com.floridsdorf.jah.model;
 
 import java.util.*;
 import java.util.concurrent.*;

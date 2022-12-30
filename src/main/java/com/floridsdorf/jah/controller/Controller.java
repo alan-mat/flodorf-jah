@@ -1,9 +1,13 @@
 package com.floridsdorf.jah.controller;
 
+import com.floridsdorf.jah.exceptions.NotAHostException;
+import com.floridsdorf.jah.model.GameClient;
 import com.floridsdorf.jah.model.GameHandler;
+import com.floridsdorf.jah.model.GameServer;
 import com.floridsdorf.jah.model.Player;
 import com.floridsdorf.jah.view.PrototypeView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,20 +17,34 @@ import java.util.Map;
  */
 public class Controller {
 
-    private GameHandler gameHandler;
+    public final static int SERVER_PORT = 7777;
+
     private PrototypeView view;
+    private GameServer gameServer;
+    private GameClient gameClient;
 
     public Controller(){
-        gameHandler = new GameHandler();
         view = new PrototypeView(this);
 
         view.start();
     }
 
+    public void hostGame() throws IOException {
+        gameServer = new GameServer(SERVER_PORT);
+        new Thread(gameServer).start(); //start the server in a new thread
+        //a host also requires its own game client instance
+        joinGame("127.0.0.1", SERVER_PORT);
+    }
+
+    public void joinGame(String hostIP, int port) throws IOException {
+        gameClient = new GameClient(hostIP, port);
+        new Thread(gameClient).start();
+    }
+
     /**
      * @return  true if game is over, false otherwise
      */
-    public boolean endRound(){
+    /*public boolean endRound(){
         List<Player> winningPlayers = gameHandler.endRound();
         if(winningPlayers == null)
             return false;
@@ -41,10 +59,6 @@ public class Controller {
             view.printText(sb.toString());
         }
         return true;
-    }
-
-    public void addPlayer(String name){
-        gameHandler.addPlayer(name);
     }
 
     public void addAnswer(String name, String answer){ gameHandler.addAnswer(name, answer); }
@@ -67,7 +81,15 @@ public class Controller {
 
     public String getPrompt(){ return gameHandler.getRandomPrompt(); }
 
-    public List<String> getAnswers(){ return gameHandler.getAnswers(); }
+    public List<String> getAnswers(){ return gameHandler.getAnswers(); }*/
+
+    public GameServer getGameServer() throws NotAHostException {
+        if(gameServer == null)
+            throw new NotAHostException();
+        return gameServer;
+    }
+
+    public GameClient getGameClient(){return gameClient;}
 
     public static void main(String[] args) {
         new Controller();

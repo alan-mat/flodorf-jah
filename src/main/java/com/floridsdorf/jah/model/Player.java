@@ -2,16 +2,17 @@ package com.floridsdorf.jah.model;
 
 /**
  * Player Instance for every logical player
- * TODO: Networking support for players
  */
 public class Player {
 
     private String userName;
     private int points;
+    private ClientHandler netHandler;
 
-    public Player(String userName){
+    public Player(String userName, ClientHandler clientHandler){
         setUserName(userName);
         points = 0;
+        this.netHandler = clientHandler;
     }
 
     public void addPoints(int amount){ points += amount; }
@@ -27,5 +28,7 @@ public class Player {
     public int getPoints() {
         return points;
     }
+
+    public ClientHandler getClientHandler(){return netHandler;}
 
 }

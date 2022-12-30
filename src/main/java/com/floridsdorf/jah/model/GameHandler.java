@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Server-side
+ */
 public class GameHandler {
 
     private List<String> prompts;
@@ -40,8 +43,8 @@ public class GameHandler {
         return prompts.remove(rNum);
     }
 
-    public void addPlayer(String name){
-        addPlayer(new Player(name));
+    public void addPlayer(String name, ClientHandler clientHandler){
+        addPlayer(new Player(name, clientHandler));
     }
 
     public void addPlayer(Player p){

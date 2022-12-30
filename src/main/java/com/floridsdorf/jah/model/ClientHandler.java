@@ -1,21 +1,19 @@
-package com.floridsdorf.jah.networkTest;
+package com.floridsdorf.jah.model;
 
 import java.io.*;
 import java.net.*;
 
+/**
+ * Server-side
+ */
 public class ClientHandler implements Runnable {
-    // Socket for the player's connection
+
+    private String playerName;
+    private int points;
     private Socket socket;
-
-    // Reference to the server
     private GameServer gameServer;
-
-    // Input and output streams for communication with the player
     private BufferedReader in;
     private PrintWriter out;
-
-    // Player's name
-    private String playerName;
 
     public ClientHandler(Socket socket, GameServer gameServer) {
         this.socket = socket;
@@ -27,6 +25,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        points = 0;
     }
 
     public void run() {
@@ -39,7 +38,8 @@ public class ClientHandler implements Runnable {
 
             String input;
             while ((input = in.readLine()) != null) {
-                // If the player is ready to start the game, update the list of ready players on the server
+                gameServer.broadcastMessage(String.format("[%s]> %s", playerName, input), this);
+                /*// If the player is ready to start the game, update the list of ready players on the server
                 if (input.equals("ready")) {
                     gameServer.updateReadyPlayers(playerName, true);
                 } else if (input.equals("not-ready")) {
@@ -48,16 +48,16 @@ public class ClientHandler implements Runnable {
                     // If the player has answered the current question, send the answer to the game
                     String[] parts = input.split(" ");
                     String answer = parts[1];
-                    gameServer.getGame().receiveAnswer(playerName, answer);
+                    //gameServer.getGame().receiveAnswer(playerName, answer);
                 } else if (input.startsWith("vote")) {
                     // If the player has voted for an answer, send the vote to the game
                     String[] parts = input.split(" ");
                     int answerIndex = Integer.parseInt(parts[1]);
-                    gameServer.getGame().receiveVote(playerName, answerIndex);
+                    //gameServer.getGame().receiveVote(playerName, answerIndex);
                 } else if (input.equals("disconnect")) {
                     // If the player has disconnected, remove the client handler from the server
                     gameServer.removeClientHandler(this);
-                }
+                }*/
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -68,4 +68,18 @@ public class ClientHandler implements Runnable {
     public void sendMessage(String message) {
         out.println(message);
     }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void addPoints(int points) {
+        if(points >= 0)
+            this.points += points;
+    }
+
 }
