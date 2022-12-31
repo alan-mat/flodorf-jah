@@ -4,8 +4,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-
-
 <AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.floridsdorf.jah.controller.viewControllers.VoteController">
    <children>
       <Label alignment="CENTER" contentDisplay="CENTER" layoutX="226.0" layoutY="14.0" prefHeight="42.0" prefWidth="149.0" text="Time To Vote" textAlignment="CENTER" textFill="WHITE">
@@ -13,7 +11,8 @@
             <Font name="System Bold" size="26.0" />
          </font>
       </Label>
-      <Button layoutX="489.0" layoutY="325.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="97.0" text="Submit Vote" />
+      <Button layoutX="497.0" layoutY="333.0" mnemonicParsing="false" prefHeight="61.0" prefWidth="97.0"
+              text="Submit Vote" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
       <Label layoutX="199.0" layoutY="74.0" prefHeight="23.0" prefWidth="54.0" text="Topic:" textFill="WHITE">
          <font>
             <Font size="18.0" />
