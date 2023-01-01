@@ -24,6 +24,7 @@ public class GameServer implements Runnable{
     private List<ClientHandler> clientHandlers = new ArrayList<>();
 
     private GameHandler gameHandler;
+    private Thread gameHandlerThread;
 
     public GameServer(int port) throws IOException {
         // Create a new server socket and bind it to the specified port
@@ -66,7 +67,9 @@ public class GameServer implements Runnable{
 
         // If the number of ready players is greater than or equal to the minimum required players, start the game
         if (readyPlayers.size() >= MIN_PLAYERS && readyPlayers.size() == clientHandlers.size()) {
-            gameHandler = new GameHandler();
+            gameHandler = new GameHandler(this);
+            gameHandlerThread = new Thread(gameHandler);
+            gameHandlerThread.start();
         }
     }
 

@@ -10,70 +10,62 @@ import java.util.*;
 /**
  * Server-side
  */
-public class GameHandler {
+public class GameHandler implements Runnable{
 
+    private GameServer server;
     private List<String> prompts;
-    private List<Player> players;
-    private Map<String, String> currentRoundAnswers;
-
+    private Map<ClientHandler, String> answers;
+    private boolean gameOver = false;
     private static final String promptsJSONPath = "com/floridsdorf/jah/prompts_from_cah.json";
-    private static final int pointsRequired = 3;
 
-    public GameHandler(){
-        prompts = new ArrayList<>();
-        players = new ArrayList<>();
-        currentRoundAnswers = new HashMap<>();
+    public GameHandler(GameServer server){
+        this.server = server;
+        answers = new HashMap<>();
         prompts = JSONParser.parsePromptsJSON(promptsJSONPath);
     }
 
-    public List<Player> endRound(){
-        currentRoundAnswers = new HashMap<>();
-        List<Player> winningPlayers = new ArrayList<>();
-        for(Player p : players){
-            if(p.getPoints() >= pointsRequired)
-                winningPlayers.add(p);
+    @Override
+    public void run() {
+        server.broadcastMessage("%GAME_START", null);
+        while(!gameOver){
+            answers = new HashMap<>();  //clear answers
+            String prompt = getRandomPrompt();
+            server.broadcastMessage(String.format("%s %s", "%NEW_PROMPT", prompt), null);
+            server.broadcastMessage(String.format("%s You have %d seconds ...", "%INFO", GameServer.ROUND_TIME), null);
+            try {
+                Thread.sleep(GameServer.ROUND_TIME * 1000);
+            } catch (InterruptedException e) {
+                //TODO: some clean handling idk
+                throw new RuntimeException(e);
+            }
+            server.broadcastMessage(String.format("%s Time is up!", "%INFO"), null);
+            broadcastAnswers();
+            //TODO: rate answers
+            //TODO: add points, check if someone won
         }
-        if(winningPlayers.isEmpty())
-            return null;
-        return winningPlayers;
+        server.broadcastMessage("%GAME_OVER", null);
+    }
+
+    /**
+     * TODO: change, send only answers
+     */
+    private void broadcastAnswers(){
+        StringBuilder sb = new StringBuilder("%INFO This round's answers:");
+        int i = 1;
+        for(String answer : answers.values()){
+            //%> : new line character
+            sb.append("%>").append(String.format("%d: %s", i++, answer));
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    public void addAnswer(ClientHandler client, String answer){
+        answers.put(client, answer);
     }
 
     public String getRandomPrompt(){
         int rNum = new Random().nextInt(prompts.size());
         return prompts.remove(rNum);
-    }
-
-    public void addPlayer(String name, ClientHandler clientHandler){
-        addPlayer(new Player(name, clientHandler));
-    }
-
-    public void addPlayer(Player p){
-        players.add(p);
-    }
-
-    public void addAnswer(String userName, String answer){
-        currentRoundAnswers.put(userName, answer);
-    }
-
-    public Player addPoint(Map<String, Integer> votes){
-        //TODO: refactor
-        //TODO: support multiple winning players
-        votes = sortMapByValue(votes);
-        String prompt = "";
-        for (Map.Entry<String, Integer> entry : votes.entrySet()) {
-            prompt = entry.getKey();
-        }
-        for(Map.Entry<String, String> entry : currentRoundAnswers.entrySet()){
-            if(entry.getValue().equals(prompt)){
-                for(Player p : players){
-                    if(p.getUserName().equals(entry.getKey())) {
-                        p.addPoints(1);
-                        return p;
-                    }
-                }
-            }
-        }
-        return null;    //should never happen
     }
 
     private static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
@@ -88,8 +80,6 @@ public class GameHandler {
 
     public List<String> getPrompts(){ return prompts; }
 
-    public List<Player> getPlayers(){ return players; }
-
-    public List<String> getAnswers(){ return new ArrayList<>(currentRoundAnswers.values()); }
+    public void setGameOver(boolean gameOver){ this.gameOver = gameOver; }
 
 }

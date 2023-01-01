@@ -38,6 +38,9 @@ public class GameClient implements Runnable{
                 switch (command) {
                     case "%CHAT" -> controller.displayChatMsg(rem);
                     case "%PLAYER_CONNECTED" -> controller.displayPlayerConnected(rem);
+                    case "%INFO" -> controller.displayServerInfo(rem);
+                    case "%NEW_PROMPT" -> controller.newPrompt(rem);
+                    case "%GAME_START" -> controller.startGame();
                     case "%GAME_OVER" -> controller.gameOver();
                     default -> System.err.printf("[ERROR]: Received unrecognized message from server:%n%s", input);
                 }
@@ -54,6 +57,10 @@ public class GameClient implements Runnable{
     public void sendChatMsg(String message){
         sendMessage(String.format("%s %s", "%CHAT", message));
     }
+
+    public void sendReady(){sendMessage("%READY");}
+
+    public void sendAnswer(String answer){ sendMessage(String.format("%s %s", "%ANSWER", answer)); }
 
     public void sendDisconnect(){
         sendMessage("%DISCONNECT");

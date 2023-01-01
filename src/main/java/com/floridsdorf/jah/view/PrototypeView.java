@@ -26,6 +26,25 @@ public class PrototypeView {
                 controller.getGameClient().sendDisconnect();
                 break;
             }
+            if(input.startsWith("!")){
+                if ("!ready".equalsIgnoreCase(input)) {
+                    controller.getGameClient().sendReady();
+                    System.out.println("You are ready");
+                    continue;
+                }
+                String command = input.split(" ")[0];
+                String rem;
+                try{
+                    rem = input.split(" ", 2)[1];
+                }catch (ArrayIndexOutOfBoundsException e){
+                    rem = "";
+                }
+                switch (command.toLowerCase()){
+                    case "!answer" -> controller.getGameClient().sendAnswer(rem);
+                    default -> System.err.println("Invalid command!");
+                }
+                continue;
+            }
             controller.getGameClient().sendChatMsg(input);
         }
 

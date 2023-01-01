@@ -43,6 +43,10 @@ public class ClientHandler implements Runnable {
                 switch (command) {
                     case "%CHAT" -> gameServer.broadcastMessage(String.format("%s [%s]> %s", "%CHAT", playerName,
                             input.split(" ", 2)[1]), this);
+                    case "%READY" -> gameServer.updateReadyPlayers(playerName, true);
+                    case "%NOT_READY" -> gameServer.updateReadyPlayers(playerName, false);
+                    case "%ANSWER" -> gameServer.getGameHandler().addAnswer(this,
+                            input.split(" ", 2)[1]);
                     case "%DISCONNECT" -> {
                         gameServer.removeClientHandler(this);
                         socket.close();

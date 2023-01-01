@@ -41,6 +41,14 @@ public class Controller {
         new Thread(gameClient).start();
     }
 
+    public void displayServerInfo(String message){
+        StringBuilder sb = new StringBuilder("[SYSTEM] ");
+        for(String s : message.split("%>")){
+            sb.append(s).append(System.lineSeparator());
+        }
+        view.printText(sb.toString());
+    }
+
     public void displayPlayerConnected(String playerName){
         view.printText(String.format("[SYSTEM] Player %s has connected.", playerName));
     }
@@ -49,15 +57,23 @@ public class Controller {
         view.printText(message);
     }
 
+    public void newPrompt(String prompt){
+        //TODO: proper new round display | new prompt display
+        view.printText(prompt);
+    }
+
+    public void startGame(){
+        //TODO: go from "lobby" state to actual game state/view
+        view.printText("[SYSTEM] Game started.");
+        view.printText("WELCOME TO JOKES AGAINST HUMANITY !!!");
+    }
+
     public void gameOver(){
         view.printText("[SYSTEM] Game is over.");
         //TODO: actual game over handling
         System.exit(0);
     }
 
-    /**
-     * @return  true if game is over, false otherwise
-     */
     /*public boolean endRound(){
         List<Player> winningPlayers = gameHandler.endRound();
         if(winningPlayers == null)
