@@ -37,8 +37,22 @@ public class Controller {
     }
 
     public void joinGame(String hostIP, int port) throws IOException {
-        gameClient = new GameClient(hostIP, port);
+        gameClient = new GameClient(hostIP, port, this);
         new Thread(gameClient).start();
+    }
+
+    public void displayPlayerConnected(String playerName){
+        view.printText(String.format("[SYSTEM] Player %s has connected.", playerName));
+    }
+
+    public void displayChatMsg(String message){
+        view.printText(message);
+    }
+
+    public void gameOver(){
+        view.printText("[SYSTEM] Game is over.");
+        //TODO: actual game over handling
+        System.exit(0);
     }
 
     /**

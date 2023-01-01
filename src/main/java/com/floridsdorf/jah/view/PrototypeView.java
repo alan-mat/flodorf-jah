@@ -22,9 +22,11 @@ public class PrototypeView {
         setup(sc);
         while (true){
             String input = sc.nextLine();
-            controller.getGameClient().sendMessage(input);
-            if(input.equals("disconnect"))
+            if(input.equals("exit") || input.equals("quit") || input.equals("disconnect")) {
+                controller.getGameClient().sendDisconnect();
                 break;
+            }
+            controller.getGameClient().sendChatMsg(input);
         }
 
         sc.close();
@@ -40,9 +42,12 @@ public class PrototypeView {
             hostGame(sc);
         else
             joinGame(sc);
-        System.out.print("Enter your name: ");
-        String name = sc.nextLine();
-        controller.getGameClient().sendMessage(name);
+        String name;
+        do{
+            System.out.print("Enter your name: ");
+            name = sc.nextLine();
+        }while(name.isBlank());
+        controller.getGameClient().sendPlayerInfo(name);
     }
 
     private void hostGame(Scanner sc){

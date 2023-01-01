@@ -31,14 +31,26 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             // Read the player's name from the input stream
-            playerName = in.readLine();
+            playerName = in.readLine().split(" ")[1];
 
             // Send a message to all other players about the new player
-            gameServer.broadcastMessage("new-player " + playerName, this);
+            gameServer.broadcastMessage("%PLAYER_CONNECTED " + playerName, this);
 
             String input;
             while ((input = in.readLine()) != null) {
-                gameServer.broadcastMessage(String.format("[%s]> %s", playerName, input), this);
+                String command = input.split(" ")[0];    //extract command out of msg
+
+                switch (command) {
+                    case "%CHAT" -> gameServer.broadcastMessage(String.format("%s [%s]> %s", "%CHAT", playerName,
+                            input.split(" ", 2)[1]), this);
+                    case "%DISCONNECT" -> {
+                        gameServer.removeClientHandler(this);
+                        socket.close();
+                        return;
+                    }
+                    default -> sendMessage("%ERROR Invalid server command!");
+                }
+
                 /*// If the player is ready to start the game, update the list of ready players on the server
                 if (input.equals("ready")) {
                     gameServer.updateReadyPlayers(playerName, true);
@@ -54,7 +66,7 @@ public class ClientHandler implements Runnable {
                     String[] parts = input.split(" ");
                     int answerIndex = Integer.parseInt(parts[1]);
                     //gameServer.getGame().receiveVote(playerName, answerIndex);
-                } else if (input.equals("disconnect")) {
+                } else if (input.equals("%DISCONNECT")) {
                     // If the player has disconnected, remove the client handler from the server
                     gameServer.removeClientHandler(this);
                 }*/

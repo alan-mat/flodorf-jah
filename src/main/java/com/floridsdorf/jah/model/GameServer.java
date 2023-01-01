@@ -77,7 +77,7 @@ public class GameServer implements Runnable{
 
         // If there is only one player remaining, end the game
         if (clientHandlers.size() == 1) {
-            clientHandlers.get(0).sendMessage("game-over");
+            clientHandlers.get(0).sendMessage("%GAME_OVER");
         }
     }
 
