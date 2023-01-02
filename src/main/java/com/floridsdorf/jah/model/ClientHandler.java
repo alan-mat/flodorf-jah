@@ -47,6 +47,8 @@ public class ClientHandler implements Runnable {
                     case "%NOT_READY" -> gameServer.updateReadyPlayers(playerName, false);
                     case "%ANSWER" -> gameServer.getGameHandler().addAnswer(this,
                             input.split(" ", 2)[1]);
+                    case "%VOTE" -> gameServer.getGameHandler().addVote(this,
+                            Integer.parseInt(input.split(" ", 2)[1]));
                     case "%DISCONNECT" -> {
                         gameServer.removeClientHandler(this);
                         socket.close();

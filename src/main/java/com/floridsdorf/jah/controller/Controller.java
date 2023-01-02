@@ -57,6 +57,10 @@ public class Controller {
         view.printText(message);
     }
 
+    public void displayErrorMsg(String message){
+        view.printText(message, true);
+    }
+
     public void newPrompt(String prompt){
         //TODO: proper new round display | new prompt display
         view.printText(prompt);

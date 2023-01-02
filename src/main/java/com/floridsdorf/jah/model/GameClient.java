@@ -36,13 +36,15 @@ public class GameClient implements Runnable{
                     rem = "";
                 }
                 switch (command) {
+                    case "%ERROR" -> controller.displayErrorMsg(rem);
                     case "%CHAT" -> controller.displayChatMsg(rem);
                     case "%PLAYER_CONNECTED" -> controller.displayPlayerConnected(rem);
                     case "%INFO" -> controller.displayServerInfo(rem);
                     case "%NEW_PROMPT" -> controller.newPrompt(rem);
                     case "%GAME_START" -> controller.startGame();
                     case "%GAME_OVER" -> controller.gameOver();
-                    default -> System.err.printf("[ERROR]: Received unrecognized message from server:%n%s", input);
+                    default -> controller.displayErrorMsg(
+                            String.format("[ERROR]: Received unrecognized message from server:%n%s", input));
                 }
             }
         }catch (IOException e){
@@ -61,6 +63,8 @@ public class GameClient implements Runnable{
     public void sendReady(){sendMessage("%READY");}
 
     public void sendAnswer(String answer){ sendMessage(String.format("%s %s", "%ANSWER", answer)); }
+
+    public void sendVote(int voteIndex){ sendMessage(String.format("%s %d", "%VOTE", voteIndex)); }
 
     public void sendDisconnect(){
         sendMessage("%DISCONNECT");

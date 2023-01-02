@@ -41,6 +41,13 @@ public class PrototypeView {
                 }
                 switch (command.toLowerCase()){
                     case "!answer" -> controller.getGameClient().sendAnswer(rem);
+                    case "!vote" -> {
+                        try{
+                            controller.getGameClient().sendVote(Integer.parseInt(rem));
+                        }catch (NumberFormatException e){
+                            System.err.println("Vote must be an Integer!");
+                        }
+                    }
                     default -> System.err.println("Invalid command!");
                 }
                 continue;
@@ -95,6 +102,11 @@ public class PrototypeView {
 
     public void printText(String text){
         System.out.println(text);
+    }
+
+    public void printText(String text, boolean isError){
+        if(isError) System.err.println(text);
+        else System.out.println(text);
     }
 
 }
