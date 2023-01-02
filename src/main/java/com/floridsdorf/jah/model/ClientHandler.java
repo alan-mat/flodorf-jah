@@ -56,26 +56,6 @@ public class ClientHandler implements Runnable {
                     }
                     default -> sendMessage("%ERROR Invalid server command!");
                 }
-
-                /*// If the player is ready to start the game, update the list of ready players on the server
-                if (input.equals("ready")) {
-                    gameServer.updateReadyPlayers(playerName, true);
-                } else if (input.equals("not-ready")) {
-                    gameServer.updateReadyPlayers(playerName, false);
-                } else if (input.startsWith("answer")) {
-                    // If the player has answered the current question, send the answer to the game
-                    String[] parts = input.split(" ");
-                    String answer = parts[1];
-                    //gameServer.getGame().receiveAnswer(playerName, answer);
-                } else if (input.startsWith("vote")) {
-                    // If the player has voted for an answer, send the vote to the game
-                    String[] parts = input.split(" ");
-                    int answerIndex = Integer.parseInt(parts[1]);
-                    //gameServer.getGame().receiveVote(playerName, answerIndex);
-                } else if (input.equals("%DISCONNECT")) {
-                    // If the player has disconnected, remove the client handler from the server
-                    gameServer.removeClientHandler(this);
-                }*/
             }
         } catch (IOException e) {
             e.printStackTrace();

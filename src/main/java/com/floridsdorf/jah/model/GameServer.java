@@ -14,6 +14,8 @@ public class GameServer implements Runnable{
     // Time in seconds for each round
     public static final int ROUND_TIME = 30;
 
+    public static final int POINTS_TO_WIN = 10; //TODO: increase to "real" value for alpha release e.g. 50
+
     // List of player names that are ready to start the game
     private List<String> readyPlayers = new ArrayList<>();
 
@@ -21,7 +23,7 @@ public class GameServer implements Runnable{
     private ServerSocket serverSocket;
 
     // List of client handlers for connected players
-    private List<ClientHandler> clientHandlers = new ArrayList<>();
+    private List<ClientHandler> clientHandlers = new LinkedList<>();
 
     private GameHandler gameHandler;
     private Thread gameHandlerThread;
@@ -84,12 +86,20 @@ public class GameServer implements Runnable{
         }
     }
 
+    public void sortClientsByPoints(){
+        clientHandlers.sort((c1, c2) -> c2.getPoints()- c1.getPoints());
+    }
+
     public void broadcastMessage(String message, ClientHandler sender) {
         for (ClientHandler clientHandler : clientHandlers) {
             if (clientHandler != sender) {
                 clientHandler.sendMessage(message);
             }
         }
+    }
+
+    public List<ClientHandler> getClientHandlers(){
+        return clientHandlers;
     }
 
     public GameHandler getGameHandler(){return gameHandler;}

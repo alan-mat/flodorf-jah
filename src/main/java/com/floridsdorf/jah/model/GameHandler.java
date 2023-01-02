@@ -46,8 +46,13 @@ public class GameHandler implements Runnable{
             List<Map.Entry<ClientHandler, Integer>> sortedVotes = getSortedVotesList();
             broadcastVotes(sortedVotes);
 
-            //TODO: add points, check if someone won
-            gameOver = true;
+            addPoints(sortedVotes);
+            server.sortClientsByPoints();
+            broadcastLeaderboard();
+            if(checkGameOver()){
+                gameOver = true;
+                broadcastWinners();
+            }
         }
         server.broadcastMessage("%GAME_OVER", null);
     }
@@ -74,6 +79,48 @@ public class GameHandler implements Runnable{
             String answer = answers.get(currentAnswerClient);
             sb.append("%>").append(String.format("%d: [%s] %s (%d)", ++i,
                     currentAnswerClient.getPlayerName(), answer, currentAnswerVoteAmount));
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    private void addPoints(List<Map.Entry<ClientHandler, Integer>> sortedVotes){
+        int playersToReward = 3;
+        int pointsToAward   = 5;
+        int localVoteMax    = -1;
+        for(Map.Entry<ClientHandler, Integer> entry : sortedVotes) {
+            if(entry.getValue() <= 0) return;
+            if(localVoteMax == -1){ //top voted answer
+                localVoteMax = entry.getValue();
+            }
+            if(entry.getValue() < localVoteMax){
+                localVoteMax = entry.getValue();
+                pointsToAward -= 2;
+            }
+            entry.getKey().addPoints(pointsToAward);
+            playersToReward--;
+            if(playersToReward <= 0) return;
+        }
+    }
+
+    private void broadcastLeaderboard(){
+        StringBuilder sb = new StringBuilder("%INFO Leaderboard:");
+        int i = 1;
+        for(ClientHandler client : server.getClientHandlers()){
+            sb.append("%>").append(String.format("%d: %s (%d)", i++, client.getPlayerName(), client.getPoints()));
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    private boolean checkGameOver(){
+        return server.getClientHandlers().get(0).getPoints() >= GameServer.POINTS_TO_WIN;
+    }
+
+    private void broadcastWinners(){
+        StringBuilder sb = new StringBuilder("%INFO Winner(s):");
+        int topPlayerPoints = server.getClientHandlers().get(0).getPoints();
+        for(ClientHandler client : server.getClientHandlers()){
+            if(client.getPoints() < topPlayerPoints) break;
+            sb.append("%>").append(client.getPlayerName());
         }
         server.broadcastMessage(sb.toString(), null);
     }
