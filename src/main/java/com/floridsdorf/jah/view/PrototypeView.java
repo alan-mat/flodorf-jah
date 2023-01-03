@@ -18,67 +18,95 @@ public class PrototypeView {
 
     public void start(){
         Scanner sc = new Scanner(System.in);
-        setupPhase(sc);
-        System.out.println("Game start!");
 
-        do {
-            String prompt = controller.getPrompt();
-            System.out.println(prompt);
-            getAnswers(sc);
-            rateAnswers(sc, prompt);
-        }while (!controller.endRound());
+        setup(sc);
+        while (true){
+            String input = sc.nextLine();
+            if(input.equals("exit") || input.equals("quit") || input.equals("disconnect")) {
+                controller.getGameClient().sendDisconnect();
+                break;
+            }
+            if(input.startsWith("!")){
+                if ("!ready".equalsIgnoreCase(input)) {
+                    controller.getGameClient().sendReady();
+                    System.out.println("You are ready");
+                    continue;
+                }
+                String command = input.split(" ")[0];
+                String rem;
+                try{
+                    rem = input.split(" ", 2)[1];
+                }catch (ArrayIndexOutOfBoundsException e){
+                    rem = "";
+                }
+                switch (command.toLowerCase()){
+                    case "!answer" -> controller.getGameClient().sendAnswer(rem);
+                    case "!vote" -> {
+                        try{
+                            controller.getGameClient().sendVote(Integer.parseInt(rem));
+                        }catch (NumberFormatException e){
+                            System.err.println("Vote must be an Integer!");
+                        }
+                    }
+                    default -> System.err.println("Invalid command!");
+                }
+                continue;
+            }
+            controller.getGameClient().sendChatMsg(input);
+        }
 
         sc.close();
+    }
+
+    public void setup(Scanner sc) {
+        String input;
+        do {
+            System.out.println("Do you want to host or join a game? [host, join]");
+            input = sc.nextLine();
+        } while (!input.equals("host") && !input.equals("join"));
+        if(input.equals("host"))
+            hostGame(sc);
+        else
+            joinGame(sc);
+        String name;
+        do{
+            System.out.print("Enter your name: ");
+            name = sc.nextLine();
+        }while(name.isBlank());
+        controller.getGameClient().sendPlayerInfo(name);
+    }
+
+    private void hostGame(Scanner sc){
+        System.out.println("Hosting game ...");
+        try {
+            controller.hostGame();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.err.println("Couldn't host game!");
+            setup(sc);
+        }
+    }
+
+    private void joinGame(Scanner sc){
+        System.out.print("Enter host ip: ");
+        String ip = sc.nextLine();
+        System.out.println("Joining game ...");
+        try {
+            controller.joinGame(ip, Controller.SERVER_PORT);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.err.println("Couldn't connect to host!");
+            setup(sc);
+        }
     }
 
     public void printText(String text){
         System.out.println(text);
     }
 
-    private void setupPhase(Scanner sc){
-        System.out.print("How many players? ");
-        int playerCount = sc.nextInt();
-        sc.nextLine();  //flush one line
-        for(int i = 0; i < playerCount; i++){
-            System.out.printf("Enter name of player %d: ", i+1);
-            String name = sc.nextLine();
-            controller.addPlayer(name);
-        }
-    }
-
-    private void getAnswers(Scanner sc){
-        List<String> players = controller.getPlayers();
-        for(int i = 0; i < players.size(); i++){
-            System.out.printf("%s's answer: ", players.get(i));
-            String answer = sc.nextLine();
-            controller.addAnswer(players.get(i), answer);
-        }
-    }
-
-    private void rateAnswers(Scanner sc, String prompt){
-        List<String> answers = controller.getAnswers();
-        List<String> players = controller.getPlayers();
-        Map<String, Integer> votes = new HashMap<>();
-        for(String answer : answers){
-            votes.put(answer, 0);
-        }
-        for(String p : players){
-            System.out.println(System.lineSeparator()+prompt);
-            System.out.printf("%s: pick the funniest answer to the prompt!%n", p);
-            for(int i = 0; i < answers.size(); i++){
-                System.out.printf("%d. %s%n", i+1, answers.get(i));
-            }
-            int selected;
-            do {
-                System.out.print("Selected answer: ");
-                selected = sc.nextInt();
-            }while (selected > answers.size() || selected < 1);
-            sc.nextLine();
-            String sa = answers.get(selected-1);
-            votes.put(sa, votes.get(sa)+1);
-        }
-        String out = controller.addPoint(votes);
-        System.out.println(out);
+    public void printText(String text, boolean isError){
+        if(isError) System.err.println(text);
+        else System.out.println(text);
     }
 
 }

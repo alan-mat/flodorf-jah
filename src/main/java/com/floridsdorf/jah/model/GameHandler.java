@@ -7,67 +7,147 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-public class GameHandler {
+/**
+ * Server-side
+ */
+public class GameHandler implements Runnable{
 
+    private GameServer server;
     private List<String> prompts;
-    private List<Player> players;
-    private Map<String, String> currentRoundAnswers;
-
+    private Map<ClientHandler, String> answers;
+    private Map<ClientHandler, Integer> votes;
+    private boolean gameOver = false;
     private static final String promptsJSONPath = "com/floridsdorf/jah/prompts_from_cah.json";
-    private static final int pointsRequired = 3;
 
-    public GameHandler(){
-        prompts = new ArrayList<>();
-        players = new ArrayList<>();
-        currentRoundAnswers = new HashMap<>();
-        try {
-            parsePromptsJSON(promptsJSONPath);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
-        }
-    }
-    
-    private void parsePromptsJSON(String path) throws IOException {
-        String text = readFileFromResources(path);
-        JSONObject jsonObject = new JSONObject(text);
-        JSONArray prompts = jsonObject.getJSONArray("prompts");
-        for(int i = 0; i < prompts.length(); i++){
-            JSONObject promptObject = prompts.getJSONObject(i);
-            //only add prompts with 1 blank
-            if(promptObject.getInt("pick") == 1)
-                this.prompts.add(promptObject.getString("text"));
-        }
+    public GameHandler(GameServer server){
+        this.server = server;
+        answers = new LinkedHashMap<>();
+        votes = new LinkedHashMap<>();
+        prompts = JSONParser.parsePromptsJSON(promptsJSONPath);
     }
 
-    private static String readFileFromResources(String fileName) throws IOException {
-        URL resource = GameHandler.class.getClassLoader().getResource(fileName);
+    @Override
+    public void run() {
+        server.broadcastMessage("%GAME_START", null);
+        while(!gameOver){
+            answers = new LinkedHashMap<>();    //clear answers
+            votes = new LinkedHashMap<>();      //clear votes
 
-        if (resource == null)
-            throw new IllegalArgumentException("File is not found!");
+            String prompt = getRandomPrompt();
+            server.broadcastMessage(String.format("%s %s", "%NEW_PROMPT", prompt), null);
+            server.broadcastMessage(String.format("%s You have %d seconds ...", "%INFO", GameServer.ROUND_TIME), null);
+            threadSleep(GameServer.ROUND_TIME);
+            server.broadcastMessage(String.format("%s Time is up!", "%INFO"), null);
+            broadcastAnswers();
 
-        StringBuilder fileContent = new StringBuilder();
+            server.broadcastMessage(String.format("%s Vote for the funniest answer now! (30 seconds)", "%INFO"), null);
+            threadSleep(GameServer.ROUND_TIME);
+            padVotes();
+            List<Map.Entry<ClientHandler, Integer>> sortedVotes = getSortedVotesList();
+            broadcastVotes(sortedVotes);
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(resource.getFile())));){
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                fileContent.append(line);
+            addPoints(sortedVotes);
+            server.sortClientsByPoints();
+            broadcastLeaderboard();
+            if(checkGameOver()){
+                gameOver = true;
+                broadcastWinners();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return fileContent.toString();
+        server.broadcastMessage("%GAME_OVER", null);
     }
 
-    public List<Player> endRound(){
-        currentRoundAnswers = new HashMap<>();
-        List<Player> winningPlayers = new ArrayList<>();
-        for(Player p : players){
-            if(p.getPoints() >= pointsRequired)
-                winningPlayers.add(p);
+    /**
+     * TODO: change, send only answers
+     */
+    private void broadcastAnswers(){
+        StringBuilder sb = new StringBuilder("%INFO This round's answers:");
+        int i = 1;
+        for(String answer : answers.values()){
+            //%> : new line character
+            sb.append("%>").append(String.format("%d: %s", i++, answer));
         }
-        if(winningPlayers.isEmpty())
-            return null;
-        return winningPlayers;
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    private void broadcastVotes(List<Map.Entry<ClientHandler, Integer>> sortedVotes){
+        StringBuilder sb = new StringBuilder("%INFO Votes are in:");
+        int i = 0;
+        for(Map.Entry<ClientHandler, Integer> entry : sortedVotes){
+            ClientHandler currentAnswerClient = entry.getKey();
+            int currentAnswerVoteAmount = entry.getValue();
+            String answer = answers.get(currentAnswerClient);
+            sb.append("%>").append(String.format("%d: [%s] %s (%d)", ++i,
+                    currentAnswerClient.getPlayerName(), answer, currentAnswerVoteAmount));
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    private void addPoints(List<Map.Entry<ClientHandler, Integer>> sortedVotes){
+        int playersToReward = 3;
+        int pointsToAward   = 5;
+        int localVoteMax    = -1;
+        for(Map.Entry<ClientHandler, Integer> entry : sortedVotes) {
+            if(entry.getValue() <= 0) return;
+            if(localVoteMax == -1){ //top voted answer
+                localVoteMax = entry.getValue();
+            }
+            if(entry.getValue() < localVoteMax){
+                localVoteMax = entry.getValue();
+                pointsToAward -= 2;
+            }
+            entry.getKey().addPoints(pointsToAward);
+            playersToReward--;
+            if(playersToReward <= 0) return;
+        }
+    }
+
+    private void broadcastLeaderboard(){
+        StringBuilder sb = new StringBuilder("%INFO Leaderboard:");
+        int i = 1;
+        for(ClientHandler client : server.getClientHandlers()){
+            sb.append("%>").append(String.format("%d: %s (%d)", i++, client.getPlayerName(), client.getPoints()));
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    private boolean checkGameOver(){
+        return server.getClientHandlers().get(0).getPoints() >= GameServer.POINTS_TO_WIN;
+    }
+
+    private void broadcastWinners(){
+        StringBuilder sb = new StringBuilder("%INFO Winner(s):");
+        int topPlayerPoints = server.getClientHandlers().get(0).getPoints();
+        for(ClientHandler client : server.getClientHandlers()){
+            if(client.getPoints() < topPlayerPoints) break;
+            sb.append("%>").append(client.getPlayerName());
+        }
+        server.broadcastMessage(sb.toString(), null);
+    }
+
+    public void addAnswer(ClientHandler client, String answer){
+        answers.put(client, answer);
+    }
+
+    /**
+     * @param voteIndex vote as per answer output, 1 indexed
+     */
+    public void addVote(ClientHandler client, int voteIndex) {
+        ClientHandler votedAnswerClient;
+        try {
+            votedAnswerClient = new LinkedList<>(answers.keySet()).get(voteIndex - 1);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            client.sendMessage("%ERROR Invalid vote number!");
+            return;
+        }
+        if (!votes.containsKey(votedAnswerClient)) votes.put(votedAnswerClient, 1);
+        else votes.put(votedAnswerClient, votes.get(votedAnswerClient) + 1);
+    }
+
+    public void padVotes(){
+        for(ClientHandler client : answers.keySet()){
+            if(!votes.containsKey(client)) votes.put(client, 0);
+        }
     }
 
     public String getRandomPrompt(){
@@ -75,37 +155,10 @@ public class GameHandler {
         return prompts.remove(rNum);
     }
 
-    public void addPlayer(String name){
-        addPlayer(new Player(name));
-    }
-
-    public void addPlayer(Player p){
-        players.add(p);
-    }
-
-    public void addAnswer(String userName, String answer){
-        currentRoundAnswers.put(userName, answer);
-    }
-
-    public Player addPoint(Map<String, Integer> votes){
-        //TODO: refactor
-        //TODO: support multiple winning players
-        votes = sortMapByValue(votes);
-        String prompt = "";
-        for (Map.Entry<String, Integer> entry : votes.entrySet()) {
-            prompt = entry.getKey();
-        }
-        for(Map.Entry<String, String> entry : currentRoundAnswers.entrySet()){
-            if(entry.getValue().equals(prompt)){
-                for(Player p : players){
-                    if(p.getUserName().equals(entry.getKey())) {
-                        p.addPoints(1);
-                        return p;
-                    }
-                }
-            }
-        }
-        return null;    //should never happen
+    private List<Map.Entry<ClientHandler, Integer>> getSortedVotesList(){
+        List<Map.Entry<ClientHandler, Integer>> sortedVotes = new LinkedList<>(votes.entrySet());
+        Collections.sort(sortedVotes, (a, b) -> b.getValue() - a.getValue());
+        return sortedVotes;
     }
 
     private static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
@@ -118,10 +171,17 @@ public class GameHandler {
         return result;
     }
 
+    public void threadSleep(int seconds){
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            //TODO: some clean handling idk
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<String> getPrompts(){ return prompts; }
 
-    public List<Player> getPlayers(){ return players; }
-
-    public List<String> getAnswers(){ return new ArrayList<>(currentRoundAnswers.values()); }
+    public void setGameOver(boolean gameOver){ this.gameOver = gameOver; }
 
 }
