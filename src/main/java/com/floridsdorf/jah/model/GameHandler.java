@@ -1,5 +1,7 @@
 package com.floridsdorf.jah.model;
 
+import com.floridsdorf.jah.model.entries.PlayerEntry;
+import com.floridsdorf.jah.model.entries.VoteEntry;
 import org.json.*;
 
 import java.io.*;
@@ -57,30 +59,23 @@ public class GameHandler implements Runnable{
         server.broadcastMessage("%GAME_OVER", null);
     }
 
-    /**
-     * TODO: change, send only answers
-     */
     private void broadcastAnswers(){
-        StringBuilder sb = new StringBuilder("%INFO This round's answers:");
-        int i = 1;
-        for(String answer : answers.values()){
-            //%> : new line character
-            sb.append("%>").append(String.format("%d: %s", i++, answer));
-        }
-        server.broadcastMessage(sb.toString(), null);
+        List<String> answerList = new LinkedList<>(answers.values());
+        server.broadcastMessage("%ANSWER_LIST", null);
+        server.broadcastObject(answerList, null);
     }
 
     private void broadcastVotes(List<Map.Entry<ClientHandler, Integer>> sortedVotes){
-        StringBuilder sb = new StringBuilder("%INFO Votes are in:");
-        int i = 0;
+        List<VoteEntry> voteEntryList = new LinkedList<>();
         for(Map.Entry<ClientHandler, Integer> entry : sortedVotes){
             ClientHandler currentAnswerClient = entry.getKey();
             int currentAnswerVoteAmount = entry.getValue();
             String answer = answers.get(currentAnswerClient);
-            sb.append("%>").append(String.format("%d: [%s] %s (%d)", ++i,
-                    currentAnswerClient.getPlayerName(), answer, currentAnswerVoteAmount));
+            VoteEntry vote = new VoteEntry(currentAnswerClient.getPlayerName(), answer, currentAnswerVoteAmount);
+            voteEntryList.add(vote);
         }
-        server.broadcastMessage(sb.toString(), null);
+        server.broadcastMessage("%VOTE_LIST", null);
+        server.broadcastObject(voteEntryList, null);
     }
 
     private void addPoints(List<Map.Entry<ClientHandler, Integer>> sortedVotes){
@@ -103,12 +98,8 @@ public class GameHandler implements Runnable{
     }
 
     private void broadcastLeaderboard(){
-        StringBuilder sb = new StringBuilder("%INFO Leaderboard:");
-        int i = 1;
-        for(ClientHandler client : server.getClientHandlers()){
-            sb.append("%>").append(String.format("%d: %s (%d)", i++, client.getPlayerName(), client.getPoints()));
-        }
-        server.broadcastMessage(sb.toString(), null);
+        server.broadcastMessage("%SEND_LEADERBOARD", null);
+        server.broadcastObject(server.getLeaderboard(), null);
     }
 
     private boolean checkGameOver(){
@@ -116,13 +107,14 @@ public class GameHandler implements Runnable{
     }
 
     private void broadcastWinners(){
-        StringBuilder sb = new StringBuilder("%INFO Winner(s):");
         int topPlayerPoints = server.getClientHandlers().get(0).getPoints();
+        List<String> winners = new LinkedList<>();
         for(ClientHandler client : server.getClientHandlers()){
             if(client.getPoints() < topPlayerPoints) break;
-            sb.append("%>").append(client.getPlayerName());
+            winners.add(client.getPlayerName());
         }
-        server.broadcastMessage(sb.toString(), null);
+        server.broadcastMessage("%WINNER_LIST", null);
+        server.broadcastObject(winners, null);
     }
 
     public void addAnswer(ClientHandler client, String answer){
@@ -161,19 +153,11 @@ public class GameHandler implements Runnable{
         return sortedVotes;
     }
 
-    private static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
-        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
-        list.sort(Map.Entry.comparingByValue());
-        Map<K, V> result = new LinkedHashMap<>();
-        for (Map.Entry<K, V> entry : list) {
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
-    }
-
     public void threadSleep(int seconds){
         try {
+            server.broadcastMessage(String.format("%s %d", "%TIMER_START", GameServer.ROUND_TIME), null);
             Thread.sleep(seconds * 1000L);
+            server.broadcastMessage("%TIMER_STOP", null);
         } catch (InterruptedException e) {
             //TODO: some clean handling idk
             throw new RuntimeException(e);

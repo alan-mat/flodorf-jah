@@ -1,5 +1,7 @@
 package com.floridsdorf.jah.model;
 
+import com.floridsdorf.jah.model.entries.PlayerEntry;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -98,8 +100,24 @@ public class GameServer implements Runnable{
         }
     }
 
+    public void broadcastObject(Object object, ClientHandler sender){
+        for(ClientHandler clientHandler : clientHandlers){
+            if(clientHandler != sender)
+                clientHandler.sendObject(object);
+        }
+    }
+
     public List<ClientHandler> getClientHandlers(){
         return clientHandlers;
+    }
+
+    public List<PlayerEntry> getLeaderboard(){
+        List<PlayerEntry> playerEntries = new LinkedList<>();
+        for(ClientHandler client : getClientHandlers()){
+            PlayerEntry playerEntry = new PlayerEntry(client.getPlayerName(), client.getPoints());
+            playerEntries.add(playerEntry);
+        }
+        return playerEntries;
     }
 
     public GameHandler getGameHandler(){return gameHandler;}

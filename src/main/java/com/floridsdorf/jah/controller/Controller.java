@@ -3,9 +3,12 @@ package com.floridsdorf.jah.controller;
 import com.floridsdorf.jah.exceptions.NotAHostException;
 import com.floridsdorf.jah.model.GameClient;
 import com.floridsdorf.jah.model.GameServer;
+import com.floridsdorf.jah.model.entries.PlayerEntry;
+import com.floridsdorf.jah.model.entries.VoteEntry;
 import com.floridsdorf.jah.view.PrototypeView;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Prototype Controller
@@ -48,8 +51,8 @@ public class Controller {
         view.printText(String.format("[SYSTEM] Player %s has connected.", playerName));
     }
 
-    public void displayChatMsg(String message){
-        view.printText(message);
+    public void displayChatMsg(String playerName, String message){
+        view.printText(String.format("[%s]> %s", playerName, message));
     }
 
     public void displayErrorMsg(String message){
@@ -65,6 +68,56 @@ public class Controller {
         //TODO: go from "lobby" state to actual game state/view
         view.printText("[SYSTEM] Game started.");
         view.printText("WELCOME TO JOKES AGAINST HUMANITY !!!");
+    }
+
+    public void showAnswers(List<String> answers){
+        view.printText("[SYSTEM] This round's answers:");
+        int i = 0;
+        for(String answer : answers){
+            view.printText(String.format("%d: %s", ++i, answer));
+        }
+    }
+
+    public void showVotes(List<VoteEntry> votes){
+        view.printText("[SYSTEM] Votes are in:");
+        int i = 0;
+        for(VoteEntry vote : votes){
+            view.printText(String.format("%d: [%s] %s (%d)", ++i, vote.playerName, vote.answer, vote.voteAmount));
+        }
+    }
+
+    public void showLeaderboard(List<PlayerEntry> players){
+        view.printText("[SYSTEM] Leaderboard:");
+        int i = 0;
+        for(PlayerEntry player : players){
+            view.printText(String.format("%d: %s (%d)", ++i, player.playerName, player.points));
+        }
+    }
+
+    public void showWinners(List<String> winners){
+        view.printText("[SYSTEM] Winner(s):");
+        int i = 0;
+        for(String winner : winners){
+            view.printText(String.format("%d: %s", ++i, winner));
+        }
+    }
+
+    /**
+     * Wird aufgerufen wenn der Server einen Timer startet
+     * Nutzen: client-seitigen Timer zu starten und anzuzeigen
+     * @param seconds   anzahl an sekunden für die der server wartet
+     */
+    public void timerStart(int seconds){
+        //implement function
+    }
+
+    /**
+     * Wird aufgerufen wenn der Server Timer vorbei ist,
+     * ist relevant wenn der Client-seitige Timer mit dem Server-seitigen
+     * desynchronisiert ist.
+     */
+    public void timerStop(){
+        //implement function
     }
 
     public void gameOver(){
