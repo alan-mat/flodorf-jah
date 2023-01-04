@@ -1,5 +1,6 @@
 package com.floridsdorf.jah.controller.viewControllers;
 
+import com.floridsdorf.jah.model.game.Player;
 import com.floridsdorf.jah.util.ViewSwitcher;
 import com.floridsdorf.jah.view.View;
 import javafx.beans.binding.Bindings;
@@ -10,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class HomeController implements Initializable {
@@ -35,6 +37,7 @@ public class HomeController implements Initializable {
 
     @FXML
     private void onStartGameButtonClick() {
+        Player player = new Player(nameInput.getText(), List.of());
         ViewSwitcher.switchTo(View.LOBBY);
         // TODO: save player name
     }
