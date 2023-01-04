@@ -41,7 +41,7 @@ public class ClientHandler implements Runnable {
                 String command = input.split(" ")[0];    //extract command out of msg
 
                 switch (command) {
-                    case "%CHAT" -> gameServer.broadcastMessage(String.format("%s [%s]> %s", "%CHAT", playerName,
+                    case "%CHAT" -> gameServer.broadcastMessage(String.format("%s %s %s", "%CHAT", playerName,
                             input.split(" ", 2)[1]), this);
                     case "%READY" -> gameServer.updateReadyPlayers(playerName, true);
                     case "%NOT_READY" -> gameServer.updateReadyPlayers(playerName, false);
@@ -49,6 +49,7 @@ public class ClientHandler implements Runnable {
                             input.split(" ", 2)[1]);
                     case "%VOTE" -> gameServer.getGameHandler().addVote(this,
                             Integer.parseInt(input.split(" ", 2)[1]));
+                    case "%GET_LEADERBOARD" -> sendLeaderboard();
                     case "%DISCONNECT" -> {
                         gameServer.removeClientHandler(this);
                         socket.close();
@@ -70,6 +71,20 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendObject(Object object) {
+        try {
+            out.writeObject(object);
+            out.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendLeaderboard(){
+        sendMessage("%SEND_LEADERBOARD");
+        sendObject(gameServer.getLeaderboard());
     }
 
     public String getPlayerName() {

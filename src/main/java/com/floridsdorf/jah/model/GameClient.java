@@ -1,9 +1,12 @@
 package com.floridsdorf.jah.model;
 
 import com.floridsdorf.jah.controller.Controller;
+import com.floridsdorf.jah.model.entries.PlayerEntry;
+import com.floridsdorf.jah.model.entries.VoteEntry;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class GameClient implements Runnable{
 
@@ -19,6 +22,7 @@ public class GameClient implements Runnable{
         this.controller = controller;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
         try {
@@ -35,10 +39,51 @@ public class GameClient implements Runnable{
                 }
                 switch (command) {
                     case "%ERROR" -> controller.displayErrorMsg(rem);
-                    case "%CHAT" -> controller.displayChatMsg(rem);
+                    case "%CHAT" -> {
+                        String[] split = rem.split(" ", 2);
+                        controller.displayChatMsg(split[0], split[1]);
+                    }
                     case "%PLAYER_CONNECTED" -> controller.displayPlayerConnected(rem);
                     case "%INFO" -> controller.displayServerInfo(rem);
                     case "%NEW_PROMPT" -> controller.newPrompt(rem);
+                    case "%ANSWER_LIST" -> {
+                        try {
+                            List<String> answers = (List<String>) in.readObject();
+                            controller.showAnswers(answers);
+                        } catch (ClassNotFoundException e) {
+                            controller.displayErrorMsg(String.format(
+                                    "[ERROR]: Error receiving answer list%n%s", e.getMessage()));
+                        }
+                    }
+                    case "%VOTE_LIST" -> {
+                        try {
+                            List<VoteEntry> votes = (List<VoteEntry>) in.readObject();
+                            controller.showVotes(votes);
+                        } catch (ClassNotFoundException e) {
+                            controller.displayErrorMsg(String.format(
+                                    "[ERROR]: Error receiving vote list%n%s", e.getMessage()));
+                        }
+                    }
+                    case "%SEND_LEADERBOARD" -> {
+                        try {
+                            List<PlayerEntry> leaderboard = (List<PlayerEntry>) in.readObject();
+                            controller.showLeaderboard(leaderboard);
+                        } catch (ClassNotFoundException e) {
+                            controller.displayErrorMsg(String.format(
+                                    "[ERROR]: Error receiving leaderboard%n%s", e.getMessage()));
+                        }
+                    }
+                    case "%WINNER_LIST" -> {
+                        try {
+                            List<String> winners = (List<String>) in.readObject();
+                            controller.showWinners(winners);
+                        } catch (ClassNotFoundException e) {
+                            controller.displayErrorMsg(String.format(
+                                    "[ERROR]: Error receiving leaderboard%n%s", e.getMessage()));
+                        }
+                    }
+                    case "%TIMER_START" -> controller.timerStart(Integer.parseInt(rem));
+                    case "%TIMER_STOP" -> controller.timerStop();
                     case "%GAME_START" -> controller.startGame();
                     case "%GAME_OVER" -> {
                         controller.gameOver();
@@ -67,6 +112,10 @@ public class GameClient implements Runnable{
     public void sendAnswer(String answer){ sendMessage(String.format("%s %s", "%ANSWER", answer)); }
 
     public void sendVote(int voteIndex){ sendMessage(String.format("%s %d", "%VOTE", voteIndex)); }
+
+    public void updateLeaderboard(){
+        sendMessage("%GET_LEADERBOARD");
+    }
 
     public void sendDisconnect(){
         sendMessage("%DISCONNECT");
