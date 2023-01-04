@@ -2,32 +2,30 @@ package com.floridsdorf.jah.model;
 
 import com.floridsdorf.jah.controller.Controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class GameClient implements Runnable{
 
     private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     private Controller controller;
 
     public GameClient(String ip, int port, Controller controller) throws IOException {
         socket = new Socket(ip, port);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
+        out = new ObjectOutputStream(socket.getOutputStream());
+        in = new ObjectInputStream(socket.getInputStream());
         this.controller = controller;
     }
 
     @Override
     public void run() {
-        String input;
         try {
             //wait for messages from server
-            while ((input = in.readLine()) != null) {
+            boolean run = true;
+            while (run) {
+                String input = in.readUTF();
                 String command = input.split(" ")[0];   //extract command from msg
                 String rem;
                 try{
@@ -42,11 +40,15 @@ public class GameClient implements Runnable{
                     case "%INFO" -> controller.displayServerInfo(rem);
                     case "%NEW_PROMPT" -> controller.newPrompt(rem);
                     case "%GAME_START" -> controller.startGame();
-                    case "%GAME_OVER" -> controller.gameOver();
+                    case "%GAME_OVER" -> {
+                        controller.gameOver();
+                        run = false;
+                    }
                     default -> controller.displayErrorMsg(
                             String.format("[ERROR]: Received unrecognized message from server:%n%s", input));
                 }
             }
+            socket.close();
         }catch (IOException e){
             System.err.println(e.getMessage());
         }
@@ -71,7 +73,12 @@ public class GameClient implements Runnable{
     }
 
     private void sendMessage(String message) {
-        out.println(message);
+        try {
+            out.writeUTF(message);
+            out.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
