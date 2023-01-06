@@ -6,6 +6,7 @@ import com.floridsdorf.jah.model.entries.VoteEntry;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.List;
 
 public class GameClient implements Runnable{
@@ -14,12 +15,14 @@ public class GameClient implements Runnable{
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Controller controller;
+    private List<PlayerEntry> leaderboardList;
 
     public GameClient(String ip, int port, Controller controller) throws IOException {
         socket = new Socket(ip, port);
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
         this.controller = controller;
+        leaderboardList = new LinkedList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -67,6 +70,7 @@ public class GameClient implements Runnable{
                     case "%SEND_LEADERBOARD" -> {
                         try {
                             List<PlayerEntry> leaderboard = (List<PlayerEntry>) in.readObject();
+                            leaderboardList = leaderboard;
                             controller.showLeaderboard(leaderboard);
                         } catch (ClassNotFoundException e) {
                             controller.displayErrorMsg(String.format(
@@ -119,6 +123,10 @@ public class GameClient implements Runnable{
 
     public void sendDisconnect(){
         sendMessage("%DISCONNECT");
+    }
+
+    public List<PlayerEntry> getLeaderboard(){
+        return leaderboardList;
     }
 
     private void sendMessage(String message) {

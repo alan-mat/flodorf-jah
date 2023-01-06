@@ -31,6 +31,7 @@ public class GameHandler implements Runnable{
     @Override
     public void run() {
         server.broadcastMessage("%GAME_START", null);
+        broadcastLeaderboard();
         while(!gameOver){
             answers = new LinkedHashMap<>();    //clear answers
             votes = new LinkedHashMap<>();      //clear votes
