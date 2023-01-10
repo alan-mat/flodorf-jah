@@ -147,7 +147,7 @@ public class MainController {
     public GameClient getGameClient(){return gameClient;}
 
     public static void main(String[] args) {
-        new MainController();
+        MainController.getInstance();
     }
 
 }
