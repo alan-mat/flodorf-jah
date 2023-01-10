@@ -1,6 +1,6 @@
 package com.floridsdorf.jah.model;
 
-import com.floridsdorf.jah.controller.Controller;
+import com.floridsdorf.jah.controller.MainController;
 import com.floridsdorf.jah.model.entries.PlayerEntry;
 import com.floridsdorf.jah.model.entries.VoteEntry;
 
@@ -14,14 +14,14 @@ public class GameClient implements Runnable{
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private Controller controller;
+    private MainController mainController;
     private List<PlayerEntry> leaderboardList;
 
-    public GameClient(String ip, int port, Controller controller) throws IOException {
+    public GameClient(String ip, int port, MainController mainController) throws IOException {
         socket = new Socket(ip, port);
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
-        this.controller = controller;
+        this.mainController = mainController;
         leaderboardList = new LinkedList<>();
     }
 
@@ -41,29 +41,29 @@ public class GameClient implements Runnable{
                     rem = "";
                 }
                 switch (command) {
-                    case "%ERROR" -> controller.displayErrorMsg(rem);
+                    case "%ERROR" -> mainController.displayErrorMsg(rem);
                     case "%CHAT" -> {
                         String[] split = rem.split(" ", 2);
-                        controller.displayChatMsg(split[0], split[1]);
+                        mainController.displayChatMsg(split[0], split[1]);
                     }
-                    case "%PLAYER_CONNECTED" -> controller.displayPlayerConnected(rem);
-                    case "%INFO" -> controller.displayServerInfo(rem);
-                    case "%NEW_PROMPT" -> controller.newPrompt(rem);
+                    case "%PLAYER_CONNECTED" -> mainController.displayPlayerConnected(rem);
+                    case "%INFO" -> mainController.displayServerInfo(rem);
+                    case "%NEW_PROMPT" -> mainController.newPrompt(rem);
                     case "%ANSWER_LIST" -> {
                         try {
                             List<String> answers = (List<String>) in.readObject();
-                            controller.showAnswers(answers);
+                            mainController.showAnswers(answers);
                         } catch (ClassNotFoundException e) {
-                            controller.displayErrorMsg(String.format(
+                            mainController.displayErrorMsg(String.format(
                                     "[ERROR]: Error receiving answer list%n%s", e.getMessage()));
                         }
                     }
                     case "%VOTE_LIST" -> {
                         try {
                             List<VoteEntry> votes = (List<VoteEntry>) in.readObject();
-                            controller.showVotes(votes);
+                            mainController.showVotes(votes);
                         } catch (ClassNotFoundException e) {
-                            controller.displayErrorMsg(String.format(
+                            mainController.displayErrorMsg(String.format(
                                     "[ERROR]: Error receiving vote list%n%s", e.getMessage()));
                         }
                     }
@@ -71,29 +71,29 @@ public class GameClient implements Runnable{
                         try {
                             List<PlayerEntry> leaderboard = (List<PlayerEntry>) in.readObject();
                             leaderboardList = leaderboard;
-                            controller.showLeaderboard(leaderboard);
+                            mainController.showLeaderboard(leaderboard);
                         } catch (ClassNotFoundException e) {
-                            controller.displayErrorMsg(String.format(
+                            mainController.displayErrorMsg(String.format(
                                     "[ERROR]: Error receiving leaderboard%n%s", e.getMessage()));
                         }
                     }
                     case "%WINNER_LIST" -> {
                         try {
                             List<String> winners = (List<String>) in.readObject();
-                            controller.showWinners(winners);
+                            mainController.showWinners(winners);
                         } catch (ClassNotFoundException e) {
-                            controller.displayErrorMsg(String.format(
+                            mainController.displayErrorMsg(String.format(
                                     "[ERROR]: Error receiving leaderboard%n%s", e.getMessage()));
                         }
                     }
-                    case "%TIMER_START" -> controller.timerStart(Integer.parseInt(rem));
-                    case "%TIMER_STOP" -> controller.timerStop();
-                    case "%GAME_START" -> controller.startGame();
+                    case "%TIMER_START" -> mainController.timerStart(Integer.parseInt(rem));
+                    case "%TIMER_STOP" -> mainController.timerStop();
+                    case "%GAME_START" -> mainController.startGame();
                     case "%GAME_OVER" -> {
-                        controller.gameOver();
+                        mainController.gameOver();
                         run = false;
                     }
-                    default -> controller.displayErrorMsg(
+                    default -> mainController.displayErrorMsg(
                             String.format("[ERROR]: Received unrecognized message from server:%n%s", input));
                 }
             }

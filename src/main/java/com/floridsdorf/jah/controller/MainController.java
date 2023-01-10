@@ -11,17 +11,29 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Prototype Controller
+ * Main Controller
+ * Implements the Singleton pattern
  */
-public class Controller {
+public class MainController {
 
+    private static MainController mainControllerObject;
     public final static int SERVER_PORT = 7777;
 
     private PrototypeView view;
     private GameServer gameServer;
     private GameClient gameClient;
 
-    public Controller(){
+    /**
+     * @return Singleton instance of Main Controller
+     */
+    public static MainController getInstance(){
+        if(mainControllerObject == null){
+            mainControllerObject = new MainController();
+        }
+        return mainControllerObject;
+    }
+
+    public MainController(){
         view = new PrototypeView(this);
 
         view.start();
@@ -135,7 +147,7 @@ public class Controller {
     public GameClient getGameClient(){return gameClient;}
 
     public static void main(String[] args) {
-        new Controller();
+        MainController.getInstance();
     }
 
 }

@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.floridsdorf.jah.controller.viewControllers.DebugController">
+            fx:mainController="com.floridsdorf.jah.mainController.viewControllers.DebugController">
     <children>
         <VBox alignment="CENTER" spacing="20.0">
             <padding>
